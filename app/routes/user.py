@@ -2,7 +2,9 @@ from fastapi import FastAPI, Depends, HTTPException, APIRouter, status
 from models.models import Registeration
 from sqlmodel import Session, select
 from utils.database import init_db, get_db
+from utils.email import sendmail
 import bcrypt
+
 init_db()
 app = FastAPI()
 router = APIRouter()
@@ -28,6 +30,7 @@ async def register_user(new_user: Registeration, db: Session = Depends(get_db)):
     password = new_user.password
     hashing_the_password =  bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
     new_user.password = hashing_the_password
+    await sendmail(new_user.email, new_user.username)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
