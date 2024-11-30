@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI
 from utils.database import init_db
 from routes.user import router as user_router
 app = FastAPI()
