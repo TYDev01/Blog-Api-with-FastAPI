@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel, Field
 from typing import Optional
-# from datetime import datetime,timezone
+from datetime import datetime,timezone
 from pydantic import EmailStr
 
 class Registeration(SQLModel, table=True):
@@ -9,8 +9,5 @@ class Registeration(SQLModel, table=True):
     email: EmailStr = Field(index=True, unique=True)
     username: str = Field(unique=True, index=True)
     password: str
-    # date_registered: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-    # class Config:
-    #     from_attributes = True
+    date_registered: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 

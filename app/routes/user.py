@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, APIRouter, status
 from models.models import Registeration
+from schema.schema import RegisterUser
 from sqlmodel import Session, select
 from utils.database import init_db, get_db
 from utils.email import sendmail
@@ -10,7 +11,7 @@ app = FastAPI()
 router = APIRouter()
 
 @router.post("/register_user", status_code=status.HTTP_200_OK)
-async def register_user(new_user: Registeration, db: Session = Depends(get_db)):
+async def register_user(new_user: RegisterUser, db: Session = Depends(get_db)):
     # Check if email already exists
     email = new_user.email
     does_email_exists = db.exec(select(Registeration).where(Registeration.email == email)).first()
@@ -35,12 +36,18 @@ async def register_user(new_user: Registeration, db: Session = Depends(get_db)):
     if len(password) < 8:
         raise HTTPException(status_code=400, detail="password should not be less than 8 characters.")
     hashing_the_password =  bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-    new_user.password = hashing_the_password
-    await sendmail(new_user.email, new_user.username)
-    db.add(new_user)
+
+    store_data = Registeration(
+        email=new_user.email,
+        username=new_user.username,
+        password=hashing_the_password,
+        
+    )
+    db.add(store_data)
     db.commit()
-    db.refresh(new_user)
-    print(new_user)
+    await sendmail(new_user.email, new_user.username)
+    db.refresh(store_data)
+    print(store_data)
     return {
         "response": "Registration successfull."
     }
