@@ -13,3 +13,4 @@ class Registeration(SQLModel, table=True):
 
     # class Config:
     #     from_attributes = True
+

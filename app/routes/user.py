@@ -44,3 +44,19 @@ async def register_user(new_user: Registeration, db: Session = Depends(get_db)):
     return {
         "response": "Registration successfull."
     }
+
+
+@router.post("/login")
+async def login_user(users: Registeration, db: Session = Depends(get_db)):
+    user = db.exec(select(Registeration).where(Registeration.username == users.username)).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="username not found")
+    
+    does_password_match = bcrypt.checkpw(users.password.encode("utf-8"), user.password.encode("utf-8"))
+
+    if not does_password_match:
+        raise HTTPException(status_code=400, detail="password does not match")
+    
+    return {
+        "response": "login successful."
+    }
