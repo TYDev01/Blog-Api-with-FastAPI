@@ -38,7 +38,7 @@ async def register_user(new_user: RegisterUser, db: Session = Depends(get_db)):
     hashing_the_password =  hashed_password(new_user.password)
     new_user.password = hashing_the_password
 
-    store_data = Registeration(**new_user.model_dump())
+    store_data = Registeration(**new_user.model_dump(exclude_none=True))
     db.add(store_data)
     db.commit()
     await sendmail(new_user.email, new_user.username)
