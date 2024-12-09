@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, APIRouter, status
 from models.models import Registeration
-from schema.schema import RegisterUser, RegisterResponse
+from schema.schema import RegisterUser, RegisterResponse, LoginSchema
 from sqlmodel import Session, select
 from utils.database import init_db, get_db
 from utils.email import sendmail
@@ -48,15 +48,15 @@ async def register_user(new_user: RegisterUser, db: Session = Depends(get_db)):
 
 
 @router.post("/login")
-async def login_user(users: Registeration, db: Session = Depends(get_db)):
-    user = db.exec(select(Registeration).where(Registeration.username == users.username)).first()
+async def login_user(users: LoginSchema, db: Session = Depends(get_db)):
+    user = db.exec(select(Registeration).where(Registeration.email == users.email)).first()
     if not user:
-        raise HTTPException(status_code=400, detail="username not found")
+        raise HTTPException(status_code=400, detail="Invalid details")
     
     does_password_match = hashed_password(user.password)
 
     if not does_password_match:
-        raise HTTPException(status_code=400, detail="password does not match")
+        raise HTTPException(status_code=400, detail="Invalid Details")
     
     return {
         "response": "login successful."

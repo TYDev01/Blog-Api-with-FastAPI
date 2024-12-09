@@ -38,3 +38,11 @@ class PostResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class LoginSchema(BaseModel):
+    email: EmailStr
+    password: str
+
+    class Config:
+        from_attribute = True

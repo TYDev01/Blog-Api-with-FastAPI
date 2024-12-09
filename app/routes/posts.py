@@ -28,7 +28,7 @@ def get_all_posts(db: Session = Depends(get_db)):
 # Get post by category
 @router.get("/category/{category}", status_code=status.HTTP_200_OK, response_model=List[PostResponse])
 def get_post_by_category(category: str, db: Session = Depends(get_db)):
-    available_options = { "life_hack", "politics"}
+    available_options = { "life_hack", "politics", "tech"}
     if category not in available_options:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No post under the category '{category}' ")
     post = db.exec(select(Posts).where(Posts.category == category)).all()
