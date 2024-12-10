@@ -46,3 +46,12 @@ class LoginSchema(BaseModel):
 
     class Config:
         from_attribute = True
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    id: str | None = None
