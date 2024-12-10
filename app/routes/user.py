@@ -53,12 +53,12 @@ async def register_user(new_user: RegisterUser, db: Session = Depends(get_db)):
 async def login_user(users: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.exec(select(Registeration).where(Registeration.email == users.username)).first()
     if not user:
-        raise HTTPException(status_code=400, detail="Invalid login details")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid login details")
     
     does_password_match = hashed_password(user.password)
 
     if not does_password_match:
-        raise HTTPException(status_code=400, detail="Invalid login Details")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid login Details")
     
     access_tokken = create_token(data={"id": user.id})
     
