@@ -16,7 +16,7 @@ class Posts(SQLModel, table=True):
     title: str = Field(nullable=False, index=True)
     content: str = Field(nullable=False, index=False)
     category: PostCategory
-    author: Optional[str] = Field(foreign_key="users.username")
+    author: Optional[str] = Field(foreign_key="users.username", ondelete="CASCADE")
     author_posts: Optional["Registration"] = Relationship(back_populates="posts")
     is_published: bool
     date_created: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

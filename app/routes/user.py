@@ -18,25 +18,19 @@ async def register_user(new_user: RegisterUser, db: Session = Depends(get_db)):
     email = new_user.email
     does_email_exists = db.exec(select(Registration).where(Registration.email == email)).first()
     if does_email_exists:
-        print(f"User with the email already exists.")
-        raise HTTPException(status_code= 400, detail="User with the email already exists.")
-    else:
-        print("Email is available")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User with the email already exists.")
 
     # Check if username already exists
     username = new_user.username
     does_username_exists = db.exec(select(Registration).where(Registration.username == username)).first()
 
     if does_username_exists:
-        print("Username already taken.")
-        raise HTTPException(status_code=400, detail="Username already taken.")
-    else:
-        print("Username is available")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Username already taken.")
     
 
     password = new_user.password
     if len(password) < 8:
-        raise HTTPException(status_code=400, detail="password should not be less than 8 characters.")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="password should not be less than 8 characters.")
     hashing_the_password =  hashed_password(new_user.password)
     new_user.password = hashing_the_password
 
@@ -45,7 +39,6 @@ async def register_user(new_user: RegisterUser, db: Session = Depends(get_db)):
     db.commit()
     await sendmail(new_user.email, new_user.username)
     db.refresh(store_data)
-    print(store_data)
     return store_data
 
 
