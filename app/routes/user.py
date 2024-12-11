@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, APIRouter, status
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from models.models import Registration
-from schema.schema import RegisterUser, RegisterResponse, LoginSchema
+from schema.schema import RegisterUser, RegisterResponse, Token
 from sqlmodel import Session, select
 from utils.database import init_db, get_db
 from utils.email import sendmail
@@ -37,8 +37,8 @@ async def register_user(new_user: RegisterUser, db: Session = Depends(get_db)):
     password = new_user.password
     if len(password) < 8:
         raise HTTPException(status_code=400, detail="password should not be less than 8 characters.")
-    hashing_the_password =  hashed_password(password)
-    password = hashing_the_password
+    hashing_the_password =  hashed_password(new_user.password)
+    new_user.password = hashing_the_password
 
     store_data = Registration(**new_user.model_dump(exclude_none=True))
     db.add(store_data)
@@ -49,7 +49,7 @@ async def register_user(new_user: RegisterUser, db: Session = Depends(get_db)):
     return store_data
 
 
-@router.post("/login")
+@router.post("/login", response_model=Token)
 async def login_user(users: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.exec(select(Registration).where(Registration.email == users.username)).first()
     if not user:
@@ -60,11 +60,9 @@ async def login_user(users: OAuth2PasswordRequestForm = Depends(), db: Session =
     if not does_password_match:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid login Details")
     
-    access_tokken = create_token(data={"id": user.id})
+    access_token = create_token(data={"id": user.id})
     
     return {
         "token_type": "Bearer",
-        "data": {
-            "token": access_tokken
-        }
+        "access_token": access_token
     }
