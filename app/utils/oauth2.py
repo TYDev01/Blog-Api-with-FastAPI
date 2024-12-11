@@ -29,14 +29,15 @@ def create_token(data: dict):
 def verify_token(token: str, credentials_exception):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        id: str = payload.get("id")
+        id: int = payload.get("id")
 
         if id is None:
             raise credentials_exception
         token_data = TokenData(id=id)
+        new_token_data = token_data.id
     except InvalidTokenError:
         raise credentials_exception
-    return token_data
+    return new_token_data
     
 
 def get_current_user(token: str = Depends(oauth2_schem)):

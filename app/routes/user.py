@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, APIRouter, status
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
-from models.models import Registeration
+from models.models import Registration
 from schema.schema import RegisterUser, RegisterResponse, LoginSchema
 from sqlmodel import Session, select
 from utils.database import init_db, get_db
@@ -16,7 +16,7 @@ router = APIRouter()
 async def register_user(new_user: RegisterUser, db: Session = Depends(get_db)):
     # Check if email already exists
     email = new_user.email
-    does_email_exists = db.exec(select(Registeration).where(Registeration.email == email)).first()
+    does_email_exists = db.exec(select(Registration).where(Registration.email == email)).first()
     if does_email_exists:
         print(f"User with the email already exists.")
         raise HTTPException(status_code= 400, detail="User with the email already exists.")
@@ -25,7 +25,7 @@ async def register_user(new_user: RegisterUser, db: Session = Depends(get_db)):
 
     # Check if username already exists
     username = new_user.username
-    does_username_exists = db.exec(select(Registeration).where(Registeration.username == username)).first()
+    does_username_exists = db.exec(select(Registration).where(Registration.username == username)).first()
 
     if does_username_exists:
         print("Username already taken.")
@@ -37,10 +37,10 @@ async def register_user(new_user: RegisterUser, db: Session = Depends(get_db)):
     password = new_user.password
     if len(password) < 8:
         raise HTTPException(status_code=400, detail="password should not be less than 8 characters.")
-    hashing_the_password =  hashed_password(new_user.password)
-    new_user.password = hashing_the_password
+    hashing_the_password =  hashed_password(password)
+    password = hashing_the_password
 
-    store_data = Registeration(**new_user.model_dump(exclude_none=True))
+    store_data = Registration(**new_user.model_dump(exclude_none=True))
     db.add(store_data)
     db.commit()
     await sendmail(new_user.email, new_user.username)
@@ -51,7 +51,7 @@ async def register_user(new_user: RegisterUser, db: Session = Depends(get_db)):
 
 @router.post("/login")
 async def login_user(users: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = db.exec(select(Registeration).where(Registeration.email == users.username)).first()
+    user = db.exec(select(Registration).where(Registration.email == users.username)).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid login details")
     

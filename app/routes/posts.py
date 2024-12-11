@@ -2,15 +2,24 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from sqlmodel import Session, select
 from typing import List
 from utils.database import get_db
+from utils.oauth2 import get_current_user
 from schema.schema import PostSchema, PostResponse
-from models.models import Posts
+from models.models import Posts, Registration
 
 
 router = APIRouter()
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=PostResponse)
-def create_post(schema: PostSchema, db: Session = Depends(get_db)):
-    new_posts = Posts(**schema.model_dump(exclude_none=True))
+def create_post(schema: PostSchema, db: Session = Depends(get_db), user_auth: int = Depends(get_current_user)):
+    print(user_auth)
+    post_owner_id = user_auth
+    compare_id = db.exec(select(Registration).where(Registration.id == post_owner_id)).first()
+    if not compare_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Author not found")
+    username = compare_id.username
+    # get_author = check_author.username
+    # author = get_author
+    new_posts = Posts(**schema.model_dump(exclude_none=True), author=username)
     db.add(new_posts)
     db.commit()
     db.refresh(new_posts)

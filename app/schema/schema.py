@@ -34,6 +34,7 @@ class PostResponse(BaseModel):
     title: str
     content: str
     category: str
+    author: str
     is_published: bool
 
     class Config:
@@ -54,4 +55,4 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    id: str | None = None
+    id: int | None = None
