@@ -58,17 +58,22 @@ def get_post_by_iD(id: int, db: Session = Depends(get_db), user_auth: int = Depe
 # Delete Post
 @router.delete('/{id}')
 def delete_user(id: int, db: Session = Depends(get_db), user_auth: int = Depends(get_current_user)):
-
-    post_ownwer = user_auth # Assign the user authorized iD to the variable.
-    is_user = db.exec(select(Registration).where(Registration.id == post_ownwer)).first()
-    if post_ownwer != is_user:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized user")
-
-
+    # First off get the post author
+    # Secondly get the users username since we're using the username as author
+    # - How do you get the username?
+    # Thirdly, check if the post author is the same with the username trying to delete it.
+    
     post = db.exec(select(Posts).where(Posts.id == id)).first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post does not exists")
     
+    get_user_with_the_id = db.exec(select(Registration).where(Registration.id == user_auth)).first()
+    print(get_user_with_the_id.username)
+    print(post.author)
+    
+    if post.author != get_user_with_the_id.username:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized user.")
+        
     db.delete(post)
     db.commit() 
 
