@@ -36,6 +36,7 @@ class PostResponse(BaseModel):
     category: str
     author: str
     is_published: bool
+    updated_at: datetime
 
     class Config:
         from_attributes = True
@@ -48,6 +49,11 @@ class LoginSchema(BaseModel):
     class Config:
         from_attribute = True
 
+class UpdateSchema(PostSchema):
+    pass
+
+class UpdateResponse(PostResponse):
+    pass
 
 class Token(BaseModel):
     access_token: str

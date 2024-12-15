@@ -3,8 +3,9 @@ from sqlmodel import Session, select
 from typing import List
 from utils.database import get_db
 from utils.oauth2 import get_current_user
-from schema.schema import PostSchema, PostResponse
+from schema.schema import PostSchema, PostResponse, UpdateResponse, UpdateSchema
 from models.models import Posts, Registration
+from typing import Optional
 
 
 router = APIRouter()
@@ -27,8 +28,8 @@ def create_post(schema: PostSchema, db: Session = Depends(get_db), user_auth: in
 
 # Get all posts
 @router.get("/allposts", status_code=status.HTTP_200_OK, response_model=List[PostResponse])
-def get_all_posts(db: Session = Depends(get_db), user_auth: int = Depends(get_current_user)):
-    all_posts = db.exec(select(Posts)).all()
+def get_all_posts(limit: int = 10, skip: int = 0, db: Session = Depends(get_db), user_auth: int = Depends(get_current_user), search: Optional[str] = ""):
+    all_posts = db.exec(select(Posts).filter(Posts.title.ilike(search)).limit(limit).offset(skip)).all()
     if not all_posts:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No post found.")
     
@@ -68,8 +69,6 @@ def delete_user(id: int, db: Session = Depends(get_db), user_auth: int = Depends
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post does not exists")
     
     get_user_with_the_id = db.exec(select(Registration).where(Registration.id == user_auth)).first()
-    print(get_user_with_the_id.username)
-    print(post.author)
     
     if post.author != get_user_with_the_id.username:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized user.")
@@ -80,3 +79,25 @@ def delete_user(id: int, db: Session = Depends(get_db), user_auth: int = Depends
     return {
         "message": "Post deleted successfully"
     }
+# Update posts
+@router.put("/{id}", response_model=UpdateResponse)
+def update_post(id: int, update_schema: UpdateSchema, db: Session = Depends(get_db), user_auth: int = Depends(get_current_user)):
+    post = db.exec(select(Posts).where(Posts.id == id)).first()
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="post not available")
+    print(post.author)
+    get_user_with_the_id = db.exec(select(Registration).where(Registration.id == user_auth)).first()
+    print(get_user_with_the_id.username)
+    if post.author != get_user_with_the_id.username:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized user.")
+    
+    post.title = update_schema.title
+    post.content = update_schema.content
+    post.category = update_schema.category
+    post.is_published = update_schema.is_published
+
+    db.add(post)
+    db.commit()
+    db.refresh(post)
+
+    return post

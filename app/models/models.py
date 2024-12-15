@@ -20,6 +20,7 @@ class Posts(SQLModel, table=True):
     author_posts: Optional["Registration"] = Relationship(back_populates="posts")
     is_published: bool
     date_created: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class Registration(SQLModel, table=True):
