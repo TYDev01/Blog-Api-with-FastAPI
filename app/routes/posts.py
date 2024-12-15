@@ -18,8 +18,6 @@ def create_post(schema: PostSchema, db: Session = Depends(get_db), user_auth: in
     if not compare_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Author not found")
     username = compare_id.username
-    # get_author = check_author.username
-    # author = get_author
     new_posts = Posts(**schema.model_dump(exclude_none=True), author=username)
     db.add(new_posts)
     db.commit()
@@ -59,10 +57,6 @@ def get_post_by_iD(id: int, db: Session = Depends(get_db), user_auth: int = Depe
 # Delete Post
 @router.delete('/{id}')
 def delete_user(id: int, db: Session = Depends(get_db), user_auth: int = Depends(get_current_user)):
-    # First off get the post author
-    # Secondly get the users username since we're using the username as author
-    # - How do you get the username?
-    # Thirdly, check if the post author is the same with the username trying to delete it.
     
     post = db.exec(select(Posts).where(Posts.id == id)).first()
     if not post:
